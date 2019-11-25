@@ -17,6 +17,7 @@ class DisplayHelper {
     void showRpm(int rpm);
     void showBatteryVolts(String v);
     void showIntakeTemperature(byte temp);
+    void showCoolantTemperature(int temp);
     void showError(byte cod);
   private :
     bool displayInverted;
@@ -25,4 +26,3 @@ class DisplayHelper {
 };
 
 #endif
-

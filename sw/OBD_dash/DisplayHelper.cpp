@@ -70,6 +70,16 @@ void DisplayHelper::showIntakeTemperature(byte temp) {
   ssd1306.print(getPadded(temp));
 }
 
+void DisplayHelper::showCoolantTemperature(int temp) {
+  setInverted(false);
+  ssd1306.setCursor(0, 0);
+  ssd1306.setFont(Adafruit5x7);
+  ssd1306.set2X();
+  ssd1306.println("TEMP    ");      
+  ssd1306.setFont(lcdnums14x24);  
+  ssd1306.print(getPadded(temp));  
+}
+
 //TODO fazer com que este cara tenha um comprimento configurável!
 String DisplayHelper::getPadded(int num) {
   char buff[5];
@@ -94,4 +104,3 @@ void DisplayHelper::showError(byte cod) {
   ssd1306.set2X();
   ssd1306.println("Falha: " + cod);  
 }
-

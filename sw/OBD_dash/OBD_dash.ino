@@ -1,6 +1,7 @@
 
 #include <EEPROM.h>
 #include "DisplayHelper.h"
+#include <stdlib.h>
 
 #define BUTTON 2
 #define ELM327_INIT_FAIL 1
@@ -45,6 +46,20 @@ void setup() {
   delay(1000);
   Serial.print("ATH0\r");
   delay(1000);
+  Serial.print("ATSP3\r");
+  delay(1000);
+  Serial.print("0100\r");
+  delay(1000);
+
+  conteudo = "";
+  caractere = 0;
+  Serial.flush();
+  while (!conteudo.startsWith("BUS INIT: OK 4100")) {
+    if (Serial.available() > 0) {
+      caractere = Serial.read();
+      conteudo.concat(caractere);
+    }
+  }
   
   pageCounter = EEPROM.read(ADDR_PAGE_COUNTER);
 }
@@ -95,7 +110,11 @@ void loop() {
       
     case 3:
       display.showIntakeTemperature(35);
-      break;      
+      break;   
+
+    case 4:
+      display.showCoolantTemperature(getEngineTemperature());
+      break;
   } 
   
   savePageChange();
@@ -120,11 +139,36 @@ String getBatteryVolts() {
   return "0";
 }
 
+int getEngineTemperature() {
+  char data[10];
+  byte counter = 0;
+  bool found = false;
+
+  Serial.flush();
+  Serial.print("0105\r");
+  
+  while (!found) {
+    if (Serial.available() > 0) {
+      data[counter] = Serial.read();
+      if (data[counter] == '>') {
+        found = true;
+        data[counter]='\0';
+      } else {
+        counter++;
+      }
+    }
+  }
+
+  data[0] = data[4];
+  data[1] = data[5];
+  data[2] = '\0';
+
+  int value = (int)strtol(data,NULL,16);
+
+  return value - 40;
+}
+
 void finalizarComFalha(byte cod) {
   display.showError(cod);
   while(true);
 }
-
-
-
-
