@@ -82,6 +82,9 @@ void DisplayHelper::showCoolantTemperature(int temp) {
 
 //TODO fazer com que este cara tenha um comprimento configurável!
 String DisplayHelper::getPadded(int num) {
+  if (num < 0) {
+    num = 999;
+  }
   char buff[5];
   char padded[6];
   

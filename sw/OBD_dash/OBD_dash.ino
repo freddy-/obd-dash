@@ -2,9 +2,12 @@
 #include <EEPROM.h>
 #include "DisplayHelper.h"
 #include <stdlib.h>
+#include <string.h>
 
 #define BUTTON 2
 #define ELM327_INIT_FAIL 1
+
+#define ELM_TIMEOUT 1000
 
 int ADDR_PAGE_COUNTER = 0;
 
@@ -24,8 +27,7 @@ void setup() {
   String conteudo = "";
   char caractere = 0;
   Serial.print("ATD\r");
-  delay(1000);
-  Serial.flush();
+  delay(200);
   Serial.print("ATZ\r");
   delay(1000);
   
@@ -39,27 +41,46 @@ void setup() {
   }
   
   Serial.print("ATE0\r");
-  delay(1000);
+  delay(200);
   Serial.print("ATL0\r");
-  delay(1000);
+  delay(200);
   Serial.print("ATS0\r");
-  delay(1000);
+  delay(200);
   Serial.print("ATH0\r");
-  delay(1000);
+  delay(200);
   Serial.print("ATSP3\r");
-  delay(1000);
+  delay(200);
+  
   Serial.print("0100\r");
   delay(1000);
 
+/*
   conteudo = "";
   caractere = 0;
-  Serial.flush();
-  while (!conteudo.startsWith("BUS INIT: OK 4100")) {
+  while (conteudo.indexOf("BUS INIT: OK 4100") != -1) {
     if (Serial.available() > 0) {
       caractere = Serial.read();
       conteudo.concat(caractere);
     }
   }
+*/
+
+  char data[30];
+  byte counter = 0;
+  bool found = false;
+  
+  while (!found) {
+    if (Serial.available() > 0) {
+      data[counter] = Serial.read();
+      if (data[counter] == '>') {
+        found = true;
+        data[counter]='\0';
+      } else {
+        counter++;
+      }
+    }
+  }
+  
   
   pageCounter = EEPROM.read(ADDR_PAGE_COUNTER);
 }
@@ -69,7 +90,7 @@ void readButtonState() {
     delay(100);
     pageCounter++;
     pageChanged = true;
-    if (pageCounter > 3) {
+    if (pageCounter > 4) {
       pageCounter = 0;
     }
     while (digitalRead(BUTTON) == LOW);
@@ -143,11 +164,11 @@ int getEngineTemperature() {
   char data[10];
   byte counter = 0;
   bool found = false;
+  unsigned long timeOut = millis() + ELM_TIMEOUT;
 
-  Serial.flush();
   Serial.print("0105\r");
   
-  while (!found) {
+  while (!found && millis() < timeOut) {
     if (Serial.available() > 0) {
       data[counter] = Serial.read();
       if (data[counter] == '>') {
@@ -159,16 +180,25 @@ int getEngineTemperature() {
     }
   }
 
-  data[0] = data[4];
-  data[1] = data[5];
-  data[2] = '\0';
-
-  int value = (int)strtol(data,NULL,16);
-
-  return value - 40;
+  if (found) {
+    data[0] = data[4];
+    data[1] = data[5];
+    data[2] = '\0';
+  
+    int value = (int)strtol(data,NULL,16);
+  
+    return value - 40;
+  }
+  
+  return 666;
 }
 
 void finalizarComFalha(byte cod) {
   display.showError(cod);
   while(true);
+}
+
+void serial_flush_buffer() {
+  while (Serial.available() > 0)
+   Serial.read();
 }
