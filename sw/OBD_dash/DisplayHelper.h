@@ -18,6 +18,9 @@ class DisplayHelper {
     void showBatteryVolts(String v);
     void showIntakeTemperature(byte temp);
     void showCoolantTemperature(int temp);
+    void showTimingAdvance(int adv);
+    void showMap(int map);
+    void showTps(int tps);
     void showError(byte cod);
   private :
     bool displayInverted;
