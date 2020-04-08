@@ -9,7 +9,7 @@ The current ECU data displayed are:
 * RPM
 * MAP
 * Spark advace
-* Intake timing
+* Intake temperature
 * Cooland temperature
 * TPS
 
